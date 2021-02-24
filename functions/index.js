@@ -88,8 +88,8 @@ app.post('/signup', (req, res) => {
             return data.user.getIdToken();
         })
         // 5) Create new user instance in DB and pair with user doc in Auth
-        .then(token => {
-            token = token
+        .then(idToken => {
+            token = idToken
             const userCredentials = {
                 handle: newUser.handle,
                 email: newUser.email,
