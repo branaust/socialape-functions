@@ -55,7 +55,18 @@ app.post('/scream', (req, res) => {
             res.status(500).json({ error: 'something went wrong' })
             console.log(err)
         })
-})
+});
+
+const isEmpty = (string) => {
+    if (string.trim() === '') return true;
+    else return false
+}
+
+const isEmail = (email) => {
+    const regEx = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
+    if (email.match(regEx)) return true;
+    else return false
+}
 
 // Signup Route
 app.post('/signup', (req, res) => {
@@ -66,6 +77,30 @@ app.post('/signup', (req, res) => {
         handle: req.body.handle,
     }
 
+    // VALIDATE DATA 
+    let errors = {}
+    // Check for valid email
+    if (isEmpty(newUser.email)) {
+        errors.email = 'Field required'
+    } else if (!isEmail(newUser.email)) {
+        errors.email = 'Must be a valid email address'
+    }
+    // Check for valid password
+    if (isEmpty(newUser.password)) {
+        errors.password = 'Field required'
+    }
+    if (newUser.password !== newUser.confirmPassword) {
+        errors.confirmPassword = 'Password and Confirm Password must match'
+    }
+    // Check for valid handle
+    if (isEmpty(newUser.handle)) {
+        errors.handle = 'Field required'
+    }
+    // If error, return error
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json(errors)
+    }
+
     // Initialize
     let token, userId
     db.doc(`/users/${newUser.handle}`).get()
@@ -73,21 +108,19 @@ app.post('/signup', (req, res) => {
             // 1) Check in firestore db to see if newUser handle exists
             if (doc.exists) {
                 return res.status(400).json({ handle: 'This handle is already taken' })
-                // 2) Check if passwords match
-            } else if (req.body.password !== req.body.confirmPassword) {
-                return res.status(400).json({ message: 'Passwords do not match' })
-                // 3) Create new user in Authentication
+
+                // 2) Create new user in Authentication
             } else {
                 return firebase
                     .auth()
                     .createUserWithEmailAndPassword(newUser.email, newUser.password)
             }
-            // 4) Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
+            // 3) Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
         }).then(data => {
             userId = data.user.uid
             return data.user.getIdToken();
         })
-        // 5) Create new user instance in DB and pair with user doc in Auth
+        // 4) Create new user instance in DB and pair with user doc in Auth
         .then(idToken => {
             token = idToken
             const userCredentials = {
@@ -98,12 +131,12 @@ app.post('/signup', (req, res) => {
             };
             return db.doc(`/users/${newUser.handle}`).set(userCredentials);
         })
-        // 6)  Returns the current token if it has not expired.
+        // 5)  Returns the current token if it has not expired.
         // Otherwise, this will refresh the token and return a new one
         .then(() => {
             return res.status(201).json({ token })
         })
-        // 7) Check if email has already been used
+        // 6) Check if email has already been used
         .catch(err => {
             console.error(err);
             if (err.code === 'auth/email-already-in-use') {
