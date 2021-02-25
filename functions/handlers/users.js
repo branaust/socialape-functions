@@ -3,6 +3,7 @@ const { validateSignupData, validateLoginData, reduceUserDetails } = require('..
 const storage = require('firebase/storage')
 const firebase = require('firebase')
 const config = require('../util/config')
+const { user } = require('firebase-functions/lib/providers/auth')
 firebase.initializeApp(config)
 
 // Signup New User
@@ -107,6 +108,27 @@ exports.addUserDetails = (req, res) => {
         })
         .catch(err => {
             console.error(err);
+            return res.status(500).json({ error: err.code })
+        })
+}
+// Get Own User Details
+exports.getAuthenticatedUser = (req, res) => {
+    let userData = {};
+    db.collection('users').doc(req.user.handle).get().then(doc => {
+        if (doc.exists) {
+            userData.credentials = doc.data();
+            return db.collection('likes').where('userHandle', '==', req.user.handle).get()
+        }
+    })
+        .then(data => {
+            userData.likes = []
+            data.forEach(doc => {
+                userData.likes.push(doc.data())
+            })
+            return res.json(userData)
+        })
+        .catch(err => {
+            console.error(err)
             return res.status(500).json({ error: err.code })
         })
 }
