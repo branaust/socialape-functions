@@ -1,10 +1,11 @@
 const { db, admin } = require('../util/admin')
-const { validateSignupData, validateLoginData } = require('../util/validators')
+const { validateSignupData, validateLoginData, reduceUserDetails } = require('../util/validators')
 const storage = require('firebase/storage')
 const firebase = require('firebase')
 const config = require('../util/config')
 firebase.initializeApp(config)
 
+// Signup New User
 exports.signup = (req, res) => {
     const newUser = {
         email: req.body.email,
@@ -20,7 +21,7 @@ exports.signup = (req, res) => {
 
     // Initialize
     let token, userId
-    db.doc(`/users/${newUser.handle}`).get()
+    db.collection('users').doc(newUser.handle).get()
         .then(doc => {
             // 1) Check in firestore db to see if newUser handle exists
             if (doc.exists) {
@@ -47,7 +48,7 @@ exports.signup = (req, res) => {
                 imageUrl: `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${noImg}?alt=media`,
                 userId
             };
-            return db.doc(`/users/${newUser.handle}`).set(userCredentials);
+            return db.collection('users').doc(newUser.handle).set(userCredentials);
         })
         // 5)  Returns the current token if it has not expired.
         // Otherwise, this will refresh the token and return a new one
@@ -66,6 +67,7 @@ exports.signup = (req, res) => {
         })
 }
 
+// Login User
 exports.login = (req, res) => {
     const user = {
         email: req.body.email,
@@ -96,6 +98,20 @@ exports.login = (req, res) => {
         })
 }
 
+// Add User Details
+exports.addUserDetails = (req, res) => {
+    let userDetails = reduceUserDetails(req.body)
+    db.collection('users').doc(req.user.handle).update(userDetails)
+        .then(() => {
+            return res.json({ message: 'User Updated Successfully' })
+        })
+        .catch(err => {
+            console.error(err);
+            return res.status(500).json({ error: err.code })
+        })
+}
+
+// Add User Profile Img
 exports.uploadImage = (req, res) => {
     const BusBoy = require('busboy');
     const path = require('path')
@@ -129,7 +145,7 @@ exports.uploadImage = (req, res) => {
             ////////////////////////////
             .then(() => {
                 const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${config.storageBucket}/o/${imageFileName}?alt=media`
-                return db.doc(`/users/${req.user.handle}`).update({ imageUrl })
+                return db.collection('users').doc(req.user.handle).update({ imageUrl })
             })
             .then(() => {
                 return res.json({ message: 'Image uploaded successfully' })
