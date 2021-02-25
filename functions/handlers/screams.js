@@ -35,3 +35,33 @@ exports.createScream = (req, res) => {
             console.log(err)
         })
 }
+
+exports.getScream = (req, res) => {
+    // 1) Create scream data object
+    let screamData = {}
+    // 2) Search for scream ID given from param in URL
+    db.collection('screams').doc(req.params.screamId).get()
+        .then(doc => {
+            // 3) If scream does not exist, return error
+            if (!doc.exists) {
+                return res.status(404).json({ error: 'Scream not found' })
+            }
+            // 4) else, scream data is the data that was found
+            screamData = doc.data()
+            screamData.screamId = doc.id
+            // 5) next, find all comments where the scream ID matches the param & return it
+            return db.collection('comments').where('screamId', '==', req.params.screamId).get()
+        })
+        // 6) For each comment, push to array of comments in scream data
+        .then(data => {
+            screamData.comments = [];
+            data.forEach(doc => {
+                screamData.comments.push(doc.data())
+            });
+            return res.json(screamData);
+        })
+        .catch(err => {
+            console.error(err)
+            return res.status(500).json({ error: err.code })
+        })
+}
