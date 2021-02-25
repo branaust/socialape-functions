@@ -1,5 +1,6 @@
 const { db, admin } = require('../util/admin')
 const { validateSignupData, validateLoginData } = require('../util/validators')
+const storage = require('firebase/storage')
 const firebase = require('firebase')
 const config = require('../util/config')
 firebase.initializeApp(config)
@@ -140,3 +141,4 @@ exports.uploadImage = (req, res) => {
     })
     busboy.end(req.rawBody)
 }
+

@@ -1,5 +1,7 @@
 const functions = require("firebase-functions");
 const app = require('express')()
+const multer = require('multer')
+const upload = multer({ dest: 'uploads/' })
 
 const { getAllScreams, createScream } = require('./handlers/screams')
 const { signup, login, uploadImage } = require('./handlers/users')
