@@ -36,6 +36,7 @@ exports.createScream = (req, res) => {
         })
 }
 
+// Fetch Single Scream
 exports.getScream = (req, res) => {
     // 1) Create scream data object
     let screamData = {}
@@ -50,7 +51,10 @@ exports.getScream = (req, res) => {
             screamData = doc.data()
             screamData.screamId = doc.id
             // 5) next, find all comments where the scream ID matches the param & return it
-            return db.collection('comments').where('screamId', '==', req.params.screamId).get()
+            return db.collection('comments')
+                .orderBy('createdAt', 'desc')
+                .where('screamId', '==', req.params.screamId)
+                .get()
         })
         // 6) For each comment, push to array of comments in scream data
         .then(data => {
@@ -63,5 +67,33 @@ exports.getScream = (req, res) => {
         .catch(err => {
             console.error(err)
             return res.status(500).json({ error: err.code })
+        })
+}
+
+// Comment on a scream 
+exports.commentOnScream = (req, res) => {
+    if (req.body.body.trim() === '') {
+        return res.status(400).json({ error: 'Field Required' })
+    }
+    const newComment = {
+        body: req.body.body,
+        createdAt: new Date().toISOString(),
+        screamId: req.params.screamId,
+        userHandle: req.user.handle,
+        userImage: req.user.imageUrl,
+    };
+    db.collection('screams').doc(req.params.screamId).get()
+        .then(doc => {
+            if (!doc.exists) {
+                return res.status(404).json({ error: 'Scream not found' })
+            }
+            return db.collection('comments').add(newComment);
+        })
+        .then(() => {
+            res.json(newComment)
+        })
+        .catch(err => {
+            console.error(err)
+            return res.status(500).json({ error: 'Something went wrong' })
         })
 }
