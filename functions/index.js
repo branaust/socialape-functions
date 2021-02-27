@@ -127,13 +127,13 @@ exports.onScreamDelete = functions.firestore.document('screams/{screamId}')
                 data.forEach(doc => {
                     batch.delete(db.collection('comments').doc(doc.id));
                 })
-                return db.collection('likes').where('screamId', '==', screamId)
+                return db.collection('likes').where('screamId', '==', screamId).get()
             })
             .then(data => {
                 data.forEach(doc => {
                     batch.delete(db.collection('likes').doc(doc.id));
                 })
-                return db.collection('notifications').where('screamId', '==', screamId)
+                return db.collection('notifications').where('screamId', '==', screamId).get()
             })
             .then(data => {
                 data.forEach(doc => {
