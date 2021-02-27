@@ -24,7 +24,7 @@ exports.createScream = (req, res) => {
     const newScream = {
         body: req.body.body,
         userHandle: req.user.handle,
-        userImg: req.user.imageUrl,
+        userImage: req.user.imageUrl,
         createdAt: new Date().toISOString(),
         likeCount: 0,
         commentCount: 0
@@ -78,7 +78,7 @@ exports.getScream = (req, res) => {
 // Comment on a scream 
 exports.commentOnScream = (req, res) => {
     if (req.body.body.trim() === '') {
-        return res.status(400).json({ error: 'Field Required' })
+        return res.status(400).json({ comment: 'Field Required' })
     }
     const newComment = {
         body: req.body.body,
