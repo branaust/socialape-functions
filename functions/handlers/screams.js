@@ -65,7 +65,9 @@ exports.getScream = (req, res) => {
         .then(data => {
             screamData.comments = [];
             data.forEach(doc => {
-                screamData.comments.push(doc.data())
+                commentData = doc.data()
+                commentData.commentId = doc.id
+                screamData.comments.push(commentData)
             });
             return res.json(screamData);
         })
@@ -95,16 +97,42 @@ exports.commentOnScream = (req, res) => {
             return doc.ref.update({ commentCount: doc.data().commentCount + 1 })
         })
         .then(() => {
-            return db.collection('comments').add(newComment);
-        })
-        .then(() => {
-            res.json(newComment)
+            return db.collection('comments').add(newComment)
+                .then((doc) => {
+                    const resComment = newComment
+                    resComment.commentId = doc.id
+                    res.json(resComment)
+                })
         })
         .catch(err => {
             console.error(err)
             return res.status(500).json({ error: 'Something went wrong' })
         })
 }
+
+// Delete Comment
+exports.deleteComment = (req, res) => {
+    const document = db.collection('comments').doc(req.params.commentId)
+    document.get()
+        .then(doc => {
+            if (!doc.exists) {
+                return res.status(400).json({ error: 'Comment not found' })
+            }
+            if (doc.data().userHandle !== req.user.handle) {
+                return res.status(403).json({ error: 'Unauthorized' })
+            } else {
+                return document.delete();
+            }
+        }).then(() => {
+            res.json({ message: 'Comment deleted successfully' })
+        })
+        .catch(err => {
+            console.error(err)
+            return res.status(500).json({ error: err.code })
+        })
+}
+
+// TODO: return doc.ref.update({ commentCount: doc.data().commentCount + 1 })
 
 // Like A Scream
 exports.likeScream = (req, res) => {
