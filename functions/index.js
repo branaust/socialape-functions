@@ -37,7 +37,7 @@ app.delete('/scream/:screamId', FBAuth, deleteScream)
 app.get('/scream/:screamId/like', FBAuth, likeScream);
 app.get('/scream/:screamId/unlike', FBAuth, unlikeScream);
 app.post('/scream/:screamId/comment', FBAuth, commentOnScream);
-app.delete('/comments/:commentId', FBAuth, deleteComment)
+app.delete('/scream/:screamId/comment/:commentId', FBAuth, deleteComment)
 
 // User Routes
 app.post('/signup', signup)

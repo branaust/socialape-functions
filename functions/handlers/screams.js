@@ -112,18 +112,29 @@ exports.commentOnScream = (req, res) => {
 
 // Delete Comment
 exports.deleteComment = (req, res) => {
-    const document = db.collection('comments').doc(req.params.commentId)
-    document.get()
+    const commentDoc = db.collection('comments').doc(req.params.commentId)
+    const screamDoc = db.collection('screams').doc(req.params.screamId)
+
+    screamDoc.get()
         .then(doc => {
             if (!doc.exists) {
-                return res.status(400).json({ error: 'Comment not found' })
+                return res.status(404).json({ error: 'Scream not found' })
             }
-            if (doc.data().userHandle !== req.user.handle) {
-                return res.status(403).json({ error: 'Unauthorized' })
-            } else {
-                return document.delete();
-            }
+            return doc.ref.update({ commentCount: doc.data().commentCount - 1 })
         }).then(() => {
+            commentDoc.get()
+                .then(doc => {
+                    if (!doc.exists) {
+                        return res.status(400).json({ error: 'Comment not found' })
+                    }
+                    if (doc.data().userHandle !== req.user.handle) {
+                        return res.status(403).json({ error: 'Unauthorized' })
+                    } else {
+                        return commentDoc.delete();
+                    }
+                })
+        })
+        .then(() => {
             res.json({ message: 'Comment deleted successfully' })
         })
         .catch(err => {
