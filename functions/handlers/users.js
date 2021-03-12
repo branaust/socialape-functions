@@ -138,6 +138,21 @@ exports.getUserDetails = (req, res) => {
         })
 }
 
+// TODO:
+// Get All Users
+exports.getUsers = (req, res) => {
+    db.collection('users')
+        .get()
+        .then(data => {
+            let users = []
+            data.forEach(user => {
+                users.push(user.data())
+            })
+            return res.json(users)
+        })
+        .catch(err => console.log(err))
+}
+
 // Get Own User Details
 exports.getAuthenticatedUser = (req, res) => {
     let userData = {};

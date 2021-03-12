@@ -23,6 +23,7 @@ const {
     addUserDetails,
     getAuthenticatedUser,
     getUserDetails,
+    getUsers,
     markNotificationsRead
 
 } = require('./handlers/users')
@@ -45,6 +46,7 @@ app.post('/login', login)
 app.post('/user/image', FBAuth, uploadImage)
 app.post('/user', FBAuth, addUserDetails)
 app.get('/user', FBAuth, getAuthenticatedUser)
+app.get('/users', getUsers)
 app.get('/user/:handle', getUserDetails)
 app.post('/notifications', FBAuth, markNotificationsRead)
 
