@@ -1,4 +1,6 @@
-const { db } = require('../util/admin')
+const { db, storage } = require('../util/admin')
+const multer = require('multer')
+const upload = multer({ dest: 'images/cards' })
 
 exports.getAllScreams = (req, res) => {
     db.collection('screams')
@@ -21,6 +23,7 @@ exports.createScream = (req, res) => {
     if (req.body.body.trim() === '') {
         return res.status(400).json({ body: 'Field required' })
     }
+
     const newScream = {
         body: req.body.body,
         userHandle: req.user.handle,
@@ -29,6 +32,9 @@ exports.createScream = (req, res) => {
         likeCount: 0,
         commentCount: 0
     }
+
+
+
     db.collection('screams').add(newScream)
         .then((doc) => {
             const resScream = newScream;
@@ -40,6 +46,12 @@ exports.createScream = (req, res) => {
             console.log(err)
         })
 }
+
+// exports.uploadPhoto = (req, res) => {
+//     upload.single('cardImage')
+//     console.log(req.file)
+// }
+
 
 // Fetch Single Scream
 exports.getScream = (req, res) => {
@@ -256,3 +268,27 @@ exports.deleteScream = (req, res) => {
             return res.status(500).json({ error: err.code })
         })
 }
+
+// exports.uploadPhoto = (req, res) => {
+//     // Get File
+//     const file = req
+
+//     res.json({ message: req.body.type })
+//     // Create Storage Ref
+//     // const storageRef = storage.ref(file.name)
+//     // // Upload File
+//     // const task = storageRef.put(file)
+
+//     // task.on('state_changed',
+
+//     //     function progress(snapshot) {
+//     //         let percentage = snapshot.bytesTransferred / snapshot.totalBytes * 100;
+//     //     })
+//     //     .then(() => {
+//     //         res.json({ message: file })
+//     //     })
+//     //     .catch(err => {
+//     //         console.error(err)
+//     //         return res.status(500).json({ error: err.code })
+//     //     })
+// }

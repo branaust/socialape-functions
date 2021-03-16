@@ -1,9 +1,16 @@
 const functions = require("firebase-functions");
 const app = require('express')()
 const { db } = require('./util/admin')
+const multer = require('multer')
+const upload = multer({ dest: 'uploads/' }).single("a");
 
 const cors = require('cors')
 app.use(cors())
+
+const express = require('express');
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 const {
     getAllScreams,
@@ -13,7 +20,8 @@ const {
     deleteComment,
     likeScream,
     unlikeScream,
-    deleteScream
+    deleteScream,
+    uploadPhoto
 } = require('./handlers/screams')
 
 const {
@@ -39,6 +47,17 @@ app.get('/scream/:screamId/like', FBAuth, likeScream);
 app.get('/scream/:screamId/unlike', FBAuth, unlikeScream);
 app.post('/scream/:screamId/comment', FBAuth, commentOnScream);
 app.delete('/scream/:screamId/comment/:commentId', FBAuth, deleteComment)
+
+
+app.post("/image", (req, res) => {
+    upload(req, res, (err) => {
+        if (err) {
+            res.status(400).send("Something went wrong!");
+        }
+        res.send(req.file);
+        console.log(req.file)
+    });
+});
 
 // User Routes
 app.post('/signup', signup)
