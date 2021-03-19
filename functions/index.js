@@ -2,7 +2,7 @@ const functions = require("firebase-functions");
 const app = require('express')()
 const { db } = require('./util/admin')
 const multer = require('multer')
-const upload = multer({ dest: 'uploads/' }).single("a");
+const upload = multer({ dest: 'uploads/' })
 
 const cors = require('cors')
 app.use(cors())
@@ -54,7 +54,7 @@ app.post("/image", (req, res) => {
         if (err) {
             res.status(400).send("Something went wrong!");
         }
-        res.send(req.file);
+        res.send(req);
         console.log(req.file)
     });
 });
